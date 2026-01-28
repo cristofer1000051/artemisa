@@ -21,12 +21,14 @@ abstract public class Utente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Long id;
     protected String name;
+    protected String cognome;
     @Column(name = "cod_fiscale")
     protected String codFiscale;
     protected String cellulare;
     protected String email;
     @Column(name = "hash_password")
     protected String hashPassword;
+    protected String rol;
 
     protected Utente(Builder<?, ?> builder) {
         this.id = builder.id;
@@ -35,6 +37,39 @@ abstract public class Utente {
         this.cellulare = builder.cellulare;
         this.email = builder.email;
         this.hashPassword = builder.hashPassword;
+        this.cognome = builder.cognome;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getCognome() {
+        return cognome;
+    }
+
+    public String getCodFiscale() {
+        return codFiscale;
+    }
+
+    public String getCellulare() {
+        return cellulare;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getHashPassword() {
+        return hashPassword;
+    }
+
+    public String getRol() {
+        return rol;
     }
 
     public static abstract class Builder<T extends Utente, B extends Builder<T, B>> {
@@ -45,7 +80,8 @@ abstract public class Utente {
         protected String cellulare;
         protected String email;
         protected String hashPassword;
-
+        protected String cognome;
+        protected String rol;
         // Metodo helper per ritornare "this" col tipo corretto (B)
         protected abstract B self();
 
@@ -82,5 +118,15 @@ abstract public class Utente {
             return self();
         }
 
+        public B cognome(String cognome){
+            this.cognome = cognome;
+            return self();
+        }
+        private B rol(String rol){
+            this.rol = rol;
+            return self();
+        }
+
     }
+    
 }

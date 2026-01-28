@@ -15,11 +15,10 @@ public class Cliente extends Utente {
     private String cap;
     private String citta;
     private String provincia;
-    
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
     private List<Fattura> fatture;
-    
+
     public List<Fattura> getFatture() {
         return fatture;
     }
@@ -34,7 +33,6 @@ public class Cliente extends Utente {
         private String cap;
         private String citta;
         private String provincia;
-        private String password;
 
         public ClienteBuilder indirizzo(String indirizzo) {
             this.indirizzo = indirizzo;
@@ -50,6 +48,7 @@ public class Cliente extends Utente {
             this.citta = citta;
             return this;
         }
+
         public ClienteBuilder provincia(String provincia) {
             this.provincia = provincia;
             return this;
@@ -62,8 +61,8 @@ public class Cliente extends Utente {
 
         @Override
         public Cliente build() {
+            this.rol = "client";
             return new Cliente(this);
         }
     }
-
 }
