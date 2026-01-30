@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import com.andromeda.artemisa.entities.Utente;
 import com.andromeda.artemisa.entities.dtos.LoginDto;
-import com.andromeda.artemisa.security.dtos.TokenDto;
 import com.andromeda.artemisa.security.repositories.AuthRepository;
 import static com.andromeda.artemisa.security.utils.config.TokenJwtConfig.PREFIX_TOKEN;
 import com.andromeda.artemisa.security.utils.responses.AuthResponse;
@@ -37,7 +36,8 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void registrareUtente(Utente utente) {
+    public void registrareUtente(Utente  utente) {
+        utente.generateHashPassword(passwordEncoder);
         authRepository.save(utente);
     }
 
@@ -48,8 +48,7 @@ public class AuthService {
                     = new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword());
             Authentication auth = authenticationManager.authenticate(authToken);
             Utente utente = authRepository.findByEmail(auth.getName()).orElseThrow(() -> new UsernameNotFoundException("L'utente non esiste"));
-            TokenDto tokenDto = jwtService.generateToken(auth.getName(), auth.getAuthorities(), utente.getId());
-            String jwtToken = tokenDto.getToken();
+            String jwtToken = jwtService.generateToken(auth.getName(), auth.getAuthorities(), utente.getId());
             response.setSuccess(true);
             response.setMessage("Has iniciado sesion correctamente");
             response.setToken(jwtToken);

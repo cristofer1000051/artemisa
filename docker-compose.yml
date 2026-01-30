@@ -19,7 +19,11 @@ services:
       PGADMIN_DEFAULT_PASSWORD: 1234
     ports:
       - "8080:80"
-
+  redis:
+    image: redis:alpine
+    container_name: my-redis
+    ports:
+      - "6379:6379"
 
 volumes:
   postgres_data:

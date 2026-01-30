@@ -1,5 +1,7 @@
 package com.andromeda.artemisa.entities;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
@@ -10,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "utenti")
@@ -29,6 +32,8 @@ abstract public class Utente {
     @Column(name = "hash_password")
     protected String hashPassword;
     protected String rol;
+    @Transient
+    protected String password;
 
     protected Utente(Builder<?, ?> builder) {
         this.id = builder.id;
@@ -36,8 +41,12 @@ abstract public class Utente {
         this.codFiscale = builder.codFiscale;
         this.cellulare = builder.cellulare;
         this.email = builder.email;
-        this.hashPassword = builder.hashPassword;
         this.cognome = builder.cognome;
+        this.password = builder.password;
+        this.rol = builder.rol;
+    }
+
+    public Utente() {
     }
 
     public Long getId() {
@@ -72,6 +81,12 @@ abstract public class Utente {
         return rol;
     }
 
+    public void generateHashPassword(PasswordEncoder encoder) {
+        if (this.password != null && encoder != null) {
+            this.hashPassword = encoder.encode(this.password);
+        }
+    }
+
     public static abstract class Builder<T extends Utente, B extends Builder<T, B>> {
 
         protected Long id;
@@ -79,9 +94,10 @@ abstract public class Utente {
         protected String codFiscale;
         protected String cellulare;
         protected String email;
-        protected String hashPassword;
         protected String cognome;
         protected String rol;
+        protected String password;
+
         // Metodo helper per ritornare "this" col tipo corretto (B)
         protected abstract B self();
 
@@ -113,20 +129,21 @@ abstract public class Utente {
             return self();
         }
 
-        public B hashPassword(String hashPassword){
-            this.hashPassword = hashPassword;
-            return self();
-        }
-
-        public B cognome(String cognome){
+        public B cognome(String cognome) {
             this.cognome = cognome;
             return self();
         }
-        private B rol(String rol){
+
+        protected B rol(String rol) {
             this.rol = rol;
             return self();
         }
 
+        public B password(String password) {
+            this.password = password;
+            return self();
+        }
+
     }
-    
+
 }
