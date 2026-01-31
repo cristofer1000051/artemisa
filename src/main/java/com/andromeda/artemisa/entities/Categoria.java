@@ -16,14 +16,14 @@ public class Categoria {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String name;
+    private String nome;
 
     @ManyToMany(mappedBy = "categorie")
     private List<Prodotto> prodotti;
 
-    public Categoria(Long id, String name, List<Prodotto> prodotti) {
+    public Categoria(Long id, String nome, List<Prodotto> prodotti) {
         this.id = id;
-        this.name = name;
+        this.nome = nome;
         this.prodotti = prodotti;
     }
 
@@ -31,8 +31,8 @@ public class Categoria {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public String getnome() {
+        return nome;
     }
 
     public List<Prodotto> getProdotti() {
@@ -42,7 +42,7 @@ public class Categoria {
     public static class Builder {
 
         private Long id;
-        private String name;
+        private String nome;
         private List<Prodotto> prodotti;
 
         public Builder() {
@@ -53,8 +53,8 @@ public class Categoria {
             return this;
         }
 
-        public Builder name(String name) {
-            this.name = name;
+        public Builder nome(String nome) {
+            this.nome = nome;
             return this;
         }
 
@@ -64,7 +64,7 @@ public class Categoria {
         }
 
         public Categoria build() {
-            Categoria categoria = new Categoria(this.id, this.name, this.prodotti);
+            Categoria categoria = new Categoria(this.id, this.nome, this.prodotti);
             return categoria;
         }
     }

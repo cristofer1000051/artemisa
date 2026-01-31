@@ -61,7 +61,7 @@ public class Cliente extends Utente {
 
         @Override
         public Cliente build() {
-            this.rol = "client";
+            this.rol = "ROLE_CLIENT";
             return new Cliente(this);
         }
     }

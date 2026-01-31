@@ -20,7 +20,7 @@ public class Amministratore extends Utente {
 
         @Override
         public Amministratore build() {
-            this.rol = "admin";
+            this.rol = "ROLE_ADMIN";
             return new Amministratore(this);
         }
 

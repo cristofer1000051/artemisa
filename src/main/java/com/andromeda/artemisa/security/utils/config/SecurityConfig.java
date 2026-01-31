@@ -25,11 +25,18 @@ public class SecurityConfig {
     public SecurityConfig(JwtValidationFilter jwtValidationFilter) {
         this.jwtValidationFilter = jwtValidationFilter;
     }
-
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests(
                 (authz) -> authz
-                        .requestMatchers("/utenti/**").permitAll()
+                        .requestMatchers(
+                    "/auth/**", 
+                    "/prodotti/list",
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/cart/**"
+                ).permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtValidationFilter, UsernamePasswordAuthenticationFilter.class)
                 .csrf((config) -> config.disable())
