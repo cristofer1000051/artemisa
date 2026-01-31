@@ -38,7 +38,7 @@ public class ProdottoService {
             }
             //2. Controllo filtro categoria (con join)
             if (categoria != null && !categoria.isEmpty()) {
-                Join<Prodotto, Categoria> categoriaJoin = root.join("categoria");
+                Join<Prodotto, Categoria> categoriaJoin = root.join("categorie");
                 predicates.add(cb.like(categoriaJoin.get("nome"), "%" + categoria + "%"));
             }
             if (prezzoMin != null && prezzoMax != null) {

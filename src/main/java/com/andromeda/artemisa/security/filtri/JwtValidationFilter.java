@@ -19,6 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.andromeda.artemisa.security.services.JwtService;
 import static com.andromeda.artemisa.security.utils.config.TokenJwtConfig.CONTENT_TYPE;
 import static com.andromeda.artemisa.security.utils.config.TokenJwtConfig.PREFIX_TOKEN;
+import com.andromeda.artemisa.utils.RedisService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.jsonwebtoken.Claims;
@@ -33,9 +34,12 @@ import jakarta.servlet.http.HttpServletResponse;
 public class JwtValidationFilter extends OncePerRequestFilter {
 
     private JwtService jwtService;
-
-    public JwtValidationFilter(JwtService jwtService) {
+    private RedisService redisService;
+    private static final long SESSION_TIMEOUT = 30;
+    
+    public JwtValidationFilter(JwtService jwtService,RedisService redisService) {
         this.jwtService = jwtService;
+        this.redisService = redisService;
     }
 
     @Override
@@ -46,9 +50,11 @@ public class JwtValidationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        String token = header.replace(PREFIX_TOKEN, "");
+        //Cancelliamo Bearer_ del nostro token
+        String token = header.substring(7);
         try {
             Claims claims = jwtService.extractClaims(token);
+
             Long utenteId = claims.get("utenteId", Long.class);
             String email = claims.getSubject();
             String authorities = claims.get("authorities", String.class);
@@ -60,6 +66,8 @@ public class JwtValidationFilter extends OncePerRequestFilter {
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(utenteId, null, grantedAuthorities);
             authenticationToken.setDetails(email);
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+            redisService.aggiornaScadenza(token, SESSION_TIMEOUT);
             filterChain.doFilter(request, response);
         } catch (JwtException e) {
             Map<String, String> body = new HashMap<>();

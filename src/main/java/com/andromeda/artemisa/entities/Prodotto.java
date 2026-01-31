@@ -36,6 +36,8 @@ public class Prodotto {
     @OneToMany(mappedBy = "prodotto", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FatturaProdotto> fattureProdotti;
 
+    public Prodotto(){}
+
     public Prodotto(List<Categoria> categorie, List<FatturaProdotto> fattureProdotti, Long id, String nome, BigDecimal prezzo, int quantita) {
         this.categorie = categorie;
         this.fattureProdotti = fattureProdotti;

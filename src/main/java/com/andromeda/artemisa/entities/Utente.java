@@ -23,7 +23,7 @@ abstract public class Utente {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     protected Long id;
-    protected String name;
+    protected String nome;
     protected String cognome;
     @Column(name = "cod_fiscale")
     protected String codFiscale;
@@ -37,7 +37,7 @@ abstract public class Utente {
 
     protected Utente(Builder<?, ?> builder) {
         this.id = builder.id;
-        this.name = builder.name;
+        this.nome = builder.nome;
         this.codFiscale = builder.codFiscale;
         this.cellulare = builder.cellulare;
         this.email = builder.email;
@@ -53,8 +53,8 @@ abstract public class Utente {
         return id;
     }
 
-    public String getName() {
-        return name;
+    public String getNome() {
+        return nome;
     }
 
     public String getCognome() {
@@ -90,7 +90,7 @@ abstract public class Utente {
     public static abstract class Builder<T extends Utente, B extends Builder<T, B>> {
 
         protected Long id;
-        protected String name;
+        protected String nome;
         protected String codFiscale;
         protected String cellulare;
         protected String email;
@@ -109,8 +109,8 @@ abstract public class Utente {
             return self();
         }
 
-        public B name(String name) {
-            this.name = name;
+        public B nome(String nome) {
+            this.nome = nome;
             return self();
         }
 

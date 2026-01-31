@@ -32,7 +32,7 @@ public class JwtService {
     }
 
     public String createToken(Map<String, Object> claims, String email) {
-        Date dateExpiration = new Date(System.currentTimeMillis() + 1000 * 60 * 1);
+        Date dateExpiration = new Date(System.currentTimeMillis() + 1000 * 60 * 24);
         String jwts = Jwts.builder()
                 .claims(claims)
                 .subject(email)

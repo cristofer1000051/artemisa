@@ -39,7 +39,7 @@ public class AdminSeeder {
             }
             //3. Crea il nuevo admin
             Amministratore ammin = new Amministratore.AmminBuilder()
-                    .name("master")
+                    .nome("master")
                     .cognome("master")
                     .email(adminEmail)
                     .password(adminPassword)
