@@ -125,7 +125,7 @@ public class ProdottoService {
             if (row.getRowNum() == 0) {
                 continue;
             }
-            String nome = row.getCell(0).getStringCellValue();
+            String nome = row.getCell(0).getStringCellValue().trim();
             Categoria cat = new Categoria.Builder().nome(nome).build();
             categorie.add(cat);
             nomi.add(nome);
