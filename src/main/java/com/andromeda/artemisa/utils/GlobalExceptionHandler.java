@@ -1,5 +1,6 @@
 package com.andromeda.artemisa.utils;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -33,5 +34,9 @@ public class GlobalExceptionHandler {
                 .path(request.getDescription(false))
                 .build();
         return new ResponseEntity<>(errore, HttpStatus.UNAUTHORIZED);
+    }
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<String> handleConflict(DataIntegrityViolationException e){
+        return ResponseEntity.status(HttpStatus.CONFLICT).body("Errore: Uno dei prodoti nel file esiste già (nome duplicato)");
     }
 }

@@ -1,13 +1,14 @@
 package com.andromeda.artemisa.controllers;
 
+import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.andromeda.artemisa.entities.Prodotto;
 import com.andromeda.artemisa.entities.dtos.ProdottoDto;
@@ -72,9 +74,21 @@ public class ProdottoController {
     }
 
     //TO-DO ADD EXCEL PRODOTTI
-    @PostMapping("/addList")
-    public ResponseEntity<String> aggProdotti(@RequestBody List<ProdottoDto> prodottoDto) {
-
-        return ResponseEntity.ok("Prodotto aggiunto!");
+    @PostMapping(value="/uploadProdotti",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> aggProdotti(@RequestParam("file") MultipartFile file) throws IOException {
+        if(file.isEmpty()){
+            return ResponseEntity.badRequest().body("Per favore, seleziona un file");
+        }
+        this.prodottoService.addListProdotti(file);
+        return ResponseEntity.ok("Il file è stato caricato con successo!");
+    }
+    //Consente di aggiungere una lista di categorie
+    @PostMapping(value="/uploadCategorie",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> aggCategorie(@RequestParam("file") MultipartFile file) throws IOException {
+        if(file.isEmpty()){
+            return ResponseEntity.badRequest().body("Per favore, seleziona un file");
+        }
+        this.prodottoService.addListCategorie(file);
+        return ResponseEntity.ok("Il file è stato caricato con successo!");
     }
 }

@@ -3,15 +3,14 @@ package com.andromeda.artemisa.repositories;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.andromeda.artemisa.entities.Prodotto;
+import com.andromeda.artemisa.entities.Categoria;
 
-public interface ProdottoRepository extends JpaRepository<Prodotto, Long>, JpaSpecificationExecutor<Prodotto>{
-
-    @Query("SELECT p.nome FROM Prodotto p WHERE p.nome IN :nomi")
+public interface CategoriaRepository extends JpaRepository<Categoria, Long>{
+    @Query("SELECT c.nome FROM Categoria c WHERE c.nome IN :nomi")
     List<String> findNomeEsistenti(@Param ("nomi") List<String> nomi);
 
+    
 }
