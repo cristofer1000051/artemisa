@@ -16,7 +16,8 @@ public class Cliente extends Utente {
     private String citta;
     private String provincia;
 
-    public Cliente(){}
+    public Cliente() {
+    }
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
     private List<Fattura> fatture;
@@ -28,7 +29,7 @@ public class Cliente extends Utente {
     private Cliente(ClienteBuilder builder) {
         super(builder); // Passa i dati al padre
     }
-    
+
     public String getIndirizzo() {
         return indirizzo;
     }

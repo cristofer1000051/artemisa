@@ -42,7 +42,7 @@ public class ProdottoService {
     public Page<Prodotto> reperireProdottiPageable(String nome, String categoria, BigDecimal prezzoMin, BigDecimal prezzoMax, Pageable pageable) {
         Specification<Prodotto> filtro = (root, query, cb) -> {
             /**
-             * cb operatori logici matematici root la tabella query, la query
+             * cb operatori logici matematici ,root la tabella , e query sarebbe quello che stiamo per inviare
              * che stiamo per inviare
              */
             List<Predicate> predicates = new ArrayList<>();

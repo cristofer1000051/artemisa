@@ -25,6 +25,9 @@ public class AutenticazioneController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> AuthLogIn(@RequestBody LoginDto loginDto) {
         String jwtToken = authService.authenticate(loginDto);
+        if(loginDto.getCarrelloLocale()!=null && !loginDto.getCarrelloLocale().isEmpty()){
+            
+        }
         AuthResponse response = new AuthResponse();
         response.setSuccess(true);
         response.setMessage("Hai iniziato sessione con successo!");

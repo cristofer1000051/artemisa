@@ -34,6 +34,46 @@ public class TempData {
         this.payload = payload;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public String getPayload() {
+        return payload;
+    }
+
+    public Instant getCreateAt() {
+        return createAt;
+    }
+
+    public Instant getUpdateAt() {
+        return updateAt;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public void setPayload(String payload) {
+        this.payload = payload;
+    }
+
+    public void setCreateAt(Instant createAt) {
+        this.createAt = createAt;
+    }
+
+    public void setUpdateAt(Instant updateAt) {
+        this.updateAt = updateAt;
+    }
+
     public static class Builder {
 
         private Long id;
@@ -51,18 +91,18 @@ public class TempData {
             return this;
         }
 
-        public Builder quantita(String key) {
+        public Builder key(String key) {
             this.key = key;
             return this;
         }
 
-        public Builder fattura(String payload) {
+        public Builder payload(String payload) {
             this.payload = payload;
             return this;
         }
 
-        public Builder prodotto(Instant createAt) {
-            this.createAt = createAt;
+        public Builder createAt() {
+            this.createAt = Instant.now();
             return this;
         }
 

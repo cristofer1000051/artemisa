@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.andromeda.artemisa.entities.dtos.ProdottoDto;
-import com.andromeda.artemisa.services.ProdottoService;
+import com.andromeda.artemisa.entities.dtos.ProdottoDtoTemp;
+import com.andromeda.artemisa.services.CarrelloService;
 
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
@@ -18,31 +18,31 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 @RestController
 public class CarrelloController {
 
-    private final ProdottoService prodottoService;
+    private final CarrelloService carrelloService;
 
-    public CarrelloController(ProdottoService prodottoService) {
-        this.prodottoService = prodottoService;
+    public CarrelloController(CarrelloService carrelloService) {
+        this.carrelloService = carrelloService;
     }
 
     @PostMapping("/add")
-    public ResponseEntity<String> aggCarrello(@RequestBody ProdottoDto prodottoDto) {
-
+    public ResponseEntity<String> aggCarrello(@RequestBody ProdottoDtoTemp prodDtoTemp) {
+        this.carrelloService.save(prodDtoTemp);
         return ResponseEntity.ok("Prodotto aggiunto!");
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<String> rmProdCarrello(@RequestBody ProdottoDto prodottoDto) {
+    public ResponseEntity<String> rmProdCarrello(@RequestBody ProdottoDtoTemp prodDtoTemp) {
 
         return ResponseEntity.ok("Prodotto aggiunto!");
     }
 
     @PutMapping("/modify")
-    public ResponseEntity<String> mdProdCarrello(@RequestBody Integer quantita) {
+    public ResponseEntity<String> mdProdCarrello(@RequestBody ProdottoDtoTemp prodDtoTemp) {
         return ResponseEntity.ok("Prodotto aggiunto!");
     }
 
     @DeleteMapping("/removeAll")
-    public ResponseEntity<String> rmCarrello(@RequestBody List<ProdottoDto> prodottoDto) {
+    public ResponseEntity<String> rmCarrello(@RequestBody List<String> keys) {
 
         return ResponseEntity.ok("Prodotto aggiunto!");
     }
