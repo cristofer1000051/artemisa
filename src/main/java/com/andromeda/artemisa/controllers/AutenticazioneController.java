@@ -11,22 +11,24 @@ import com.andromeda.artemisa.entities.dtos.ClienteDto;
 import com.andromeda.artemisa.entities.dtos.LoginDto;
 import com.andromeda.artemisa.security.services.AuthService;
 import com.andromeda.artemisa.security.utils.responses.AuthResponse;
+import com.andromeda.artemisa.services.CarrelloService;
 
 @RestController
 @RequestMapping("/auth")
 public class AutenticazioneController {
 
     private final AuthService authService;
-
-    public AutenticazioneController(AuthService authService) {
+    private final CarrelloService carrelloService;
+    public AutenticazioneController(AuthService authService,CarrelloService carrelloService) {
         this.authService = authService;
+        this.carrelloService = carrelloService;
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> AuthLogIn(@RequestBody LoginDto loginDto) {
         String jwtToken = authService.authenticate(loginDto);
         if(loginDto.getCarrelloLocale()!=null && !loginDto.getCarrelloLocale().isEmpty()){
-            
+            this.carrelloService.saveAll(loginDto.getCarrelloLocale());
         }
         AuthResponse response = new AuthResponse();
         response.setSuccess(true);
