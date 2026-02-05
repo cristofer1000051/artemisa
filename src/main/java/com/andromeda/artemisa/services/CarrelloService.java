@@ -22,6 +22,7 @@ public class CarrelloService {
     public CarrelloService(TempDataRepository tempDataRepository) {
         this.tempDataRepository = tempDataRepository;
     }
+
     //Ricordare che tutto dipendera del Id del prodDtoTemp
     @Transactional
     public void save(ProdottoDtoTemp prodDtoTemp) {
@@ -57,11 +58,7 @@ public class CarrelloService {
 
     @Transactional
     public void deleteAll(List<Long> prodIds) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        List<String> keys = prodIds.stream().map(k -> {
-            return "cart:" + authentication.getName() + ":" + k;
-        }).collect(Collectors.toList());
-        tempDataRepository.deleteByKeyIn(keys);
+        tempDataRepository.deleteByIdIn(prodIds);
     }
 
     public List<Prodotto> findAll() {

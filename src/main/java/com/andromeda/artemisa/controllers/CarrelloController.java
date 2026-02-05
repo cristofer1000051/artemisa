@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,19 +30,14 @@ public class CarrelloController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<String> rmProdCarrello(@RequestBody ProdottoDtoTemp prodDtoTemp) {
-
-        return ResponseEntity.ok("Prodotto aggiunto!");
-    }
-
-    @PutMapping("/modify")
-    public ResponseEntity<String> mdProdCarrello(@RequestBody ProdottoDtoTemp prodDtoTemp) {
+    public ResponseEntity<String> rmProdCarrello(@RequestBody Long id) {
+        this.carrelloService.deleteById(id);
         return ResponseEntity.ok("Prodotto aggiunto!");
     }
 
     @DeleteMapping("/removeAll")
-    public ResponseEntity<String> rmCarrello(@RequestBody List<String> keys) {
-
+    public ResponseEntity<String> rmCarrello(@RequestBody List<Long> ids) {
+        this.carrelloService.deleteAll(ids);
         return ResponseEntity.ok("Prodotto aggiunto!");
     }
 
