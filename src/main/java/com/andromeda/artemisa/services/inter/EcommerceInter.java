@@ -2,11 +2,11 @@ package com.andromeda.artemisa.services.inter;
 
 import java.util.List;
 
-import com.andromeda.artemisa.entities.TempData;
+import com.andromeda.artemisa.entities.dtos.ItemDto;
 
 public interface EcommerceInter {
 
-    public List<TempData> recuperoProdottiSessione(String session);
+    public List<ItemDto> recuperoCarrelloSessione(String session);
 
     public void aggProdottoCarrello(String session);
 

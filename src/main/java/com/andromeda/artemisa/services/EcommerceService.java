@@ -2,13 +2,13 @@ package com.andromeda.artemisa.services;
 
 import java.util.List;
 
-import com.andromeda.artemisa.entities.TempData;
+import com.andromeda.artemisa.entities.dtos.ItemDto;
 import com.andromeda.artemisa.services.inter.EcommerceInter;
 
 public class EcommerceService implements EcommerceInter{
 
     @Override
-    public List<TempData> recuperoProdottiSessione(String email) {
+    public List<ItemDto> recuperoCarrelloSessione(String email) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 

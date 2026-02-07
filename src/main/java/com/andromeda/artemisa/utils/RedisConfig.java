@@ -12,21 +12,25 @@ public class RedisConfig {
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-        //Strumento che useremo per inviare commandi a Redis
-        RedisTemplate<String, Object> template = new  RedisTemplate<>();
-        //Collega il template alla connessione attiva (Configurata automaticamente da Spring)
+        // Strumento principale per inviare comandi a Redis
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+
+        // Collega il template alla connessione attiva (gestita da Spring)
         template.setConnectionFactory(connectionFactory);
-        
-        // 1. Usa il metodo factory 'json()'
-        // Questo gestisce automaticamente la serializzazione degli oggetti generici
+
+        // Prepara il convertitore (serializer)
+        // Trasforma automaticamente gli oggetti Java in formato JSON
         RedisSerializer<Object> serializer = RedisSerializer.json();
-        
-        // 2. Imposta i serializer
+
+        // Imposta le regole di conversione:
+        // Le chiavi restano testo semplice (String), i valori diventano JSON
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(serializer);
 
+        // Applica le stesse regole anche per le strutture Hash
         template.setHashKeySerializer(new StringRedisSerializer());
         template.setHashValueSerializer(serializer);
+
         return template;
     }
 }

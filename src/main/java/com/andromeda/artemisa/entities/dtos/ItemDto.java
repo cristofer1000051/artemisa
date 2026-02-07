@@ -1,10 +1,10 @@
 package com.andromeda.artemisa.entities.dtos;
 
-public class ProdottoDtoTemp {
+public class ItemDto {
     private Long id;
     private Integer quantita;
 
-    public ProdottoDtoTemp() {
+    public ItemDto() {
     }
 
     public Long getId() {

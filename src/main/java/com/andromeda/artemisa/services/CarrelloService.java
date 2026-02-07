@@ -1,64 +1,69 @@
 package com.andromeda.artemisa.services;
 
+import java.time.Duration;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.andromeda.artemisa.entities.Prodotto;
-import com.andromeda.artemisa.entities.TempData;
-import com.andromeda.artemisa.entities.dtos.ProdottoDtoTemp;
-import com.andromeda.artemisa.repositories.TempDataRepository;
-import com.andromeda.artemisa.utils.Obj;
+import com.andromeda.artemisa.entities.dtos.ItemDto;
 
 @Service
 public class CarrelloService {
 
-    private final TempDataRepository tempDataRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    public CarrelloService(TempDataRepository tempDataRepository) {
-        this.tempDataRepository = tempDataRepository;
+    public CarrelloService(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
     }
 
     //Ricordare che tutto dipendera del Id del prodDtoTemp
     @Transactional
-    public void save(ProdottoDtoTemp prodDtoTemp) {
+    public void save(ItemDto itemDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        TempData tempData = null;
-        String json;
-        Obj obj = new Obj();
+        String chiaveCarrello = "cart:" + authentication.getName();
+        Long idProdotto = itemDto.getId();
 
-        if (prodDtoTemp.getId() == null) {
-            json = obj.toJson(prodDtoTemp);
-            tempData = new TempData.Builder().key("cart:" + authentication.getName() + ":" + prodDtoTemp.getId()).payload(json).build();
+        Object esistente = redisTemplate.opsForHash().get(chiaveCarrello, idProdotto);
+
+        if (esistente != null) {
+            ItemDto vecchioItem = (ItemDto) esistente;
+            int nuovaQuantitaTotale = vecchioItem.getQuantita() + itemDto.getQuantita();
+            vecchioItem.setQuantita(nuovaQuantitaTotale);
+            redisTemplate.opsForHash().put(chiaveCarrello, idProdotto, vecchioItem);
+        } else {
+            redisTemplate.opsForHash().put(chiaveCarrello, idProdotto, itemDto);
         }
-        tempDataRepository.save(tempData);
+
+        redisTemplate.expire(chiaveCarrello, Duration.ofDays(1));
     }
 
-    @Transactional
-    public void saveAll(List<ProdottoDtoTemp> prodDtoTemp) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        List<TempData> prodListStr = prodDtoTemp.stream().map(p -> {
-            Obj obj = new Obj();
-            String prodString = obj.toJson(p);
-            TempData tempData = new TempData.Builder().key("cart:" + authentication.getName() + ":" + p.getId()).payload(prodString).build();
-            return tempData;
-        }).collect(Collectors.toList());
-        tempDataRepository.saveAll(prodListStr);
+    public void saveAll(List<ItemDto> itemDto) {
+        for (ItemDto i : itemDto) {
+            this.save(i);
+        }
     }
 
     @Transactional
     public void deleteById(Long prodId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        tempDataRepository.deleteByKey("cart:" + authentication.getName() + ":" + prodId);
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return;
+        }
+        String chiaveCarrello = "cart:" + authentication.getName();
+        String hashKey = String.valueOf(prodId);
+        redisTemplate.opsForHash().delete(chiaveCarrello, hashKey);
     }
 
     @Transactional
-    public void deleteAll(List<Long> prodIds) {
-        tempDataRepository.deleteByIdIn(prodIds);
+    public void deleteAll() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String chiaveCarrello = "cart:" + authentication.getName();
+        redisTemplate.delete(chiaveCarrello);
     }
 
     public List<Prodotto> findAll() {
