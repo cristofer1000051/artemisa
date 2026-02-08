@@ -1,15 +1,19 @@
 package com.andromeda.artemisa.controllers;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.andromeda.artemisa.entities.dtos.ProdottoDto;
 import com.andromeda.artemisa.services.CarrelloService;
 
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
+
 
 @RequestMapping("/cart")
 @RestController
@@ -34,9 +38,12 @@ public class CarrelloController {
     }
 
     @DeleteMapping("/removeAll")
-    public ResponseEntity<String> rmCarrello() {
+    public ResponseEntity<?> rmCarrello() {
         this.carrelloService.deleteAll();
         return ResponseEntity.ok("Prodotto aggiunto!");
     }
-
+    @GetMapping("/list")
+    public ResponseEntity<List<ProdottoDto>> listCarrello(){
+        return ResponseEntity.ok(this.carrelloService.findAll());
+    }
 }

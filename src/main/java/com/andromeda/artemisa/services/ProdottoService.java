@@ -150,5 +150,10 @@ public class ProdottoService {
         return risposta;
     }
 
+    @Transactional  
+    public void deleteProdotto(Long id){
+        this.prodottoRepository.deleteById(id);
+    }
+
 
 }

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
@@ -14,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,17 +44,18 @@ public class ProdottoController {
             @RequestParam(required = false) String categoria,
             @RequestParam(required = false) BigDecimal prezzoMin,
             @RequestParam(required = false) BigDecimal prezzoMax,
-            Pageable pageable,
+            @PageableDefault(size = 50, page = 0) Pageable pageable,
             PagedResourcesAssembler<ProdottoDto> assembler
     ) {
 
         Page<Prodotto> pageProdotto = prodottoService.reperireProdottiPageable(nome, categoria, prezzoMin, prezzoMax, pageable);
         Page<ProdottoDto> pageProdottoDto = pageProdotto.map(
-                prodotto -> new ProdottoDto.ProdottoBuilder()
-                        .nome(prodotto.getNome())
-                        .prezzo(prodotto.getPrezzo())
-                        .quantita(prodotto.getStock())
-                        .build()
+                prodotto -> new ProdottoDto(
+                        prodotto.getId(),
+                        prodotto.getNome(),
+                        prodotto.getPrezzo(),
+                        prodotto.getStock()
+                )
         );
         return assembler.toModel(pageProdottoDto);
     }
@@ -63,10 +66,10 @@ public class ProdottoController {
         return ResponseEntity.ok("Prodotto aggiunto!");
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity<String> rmProdotto(@RequestBody ProdottoDto prodottoDto) {
-
-        return ResponseEntity.ok("Prodotto aggiunto!");
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> rmProdotto(@PathVariable Long id) {
+        prodottoService.deleteProdotto(id);
+        return ResponseEntity.ok("Prodotto cancellato!");
     }
 
     @PutMapping("/modify")
