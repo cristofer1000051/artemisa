@@ -14,4 +14,5 @@ public interface ProdottoRepository extends JpaRepository<Prodotto, Long>, JpaSp
     @Query("SELECT p.nome FROM Prodotto p WHERE p.nome IN :nomi")
     List<String> findNomeEsistenti(@Param ("nomi") List<String> nomi);
 
+    List<Prodotto> findByIdIn(@Param("ids")List<Long> ids);
 }

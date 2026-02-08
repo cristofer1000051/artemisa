@@ -22,7 +22,7 @@ public class Prodotto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String nome;
-    private Integer quantita;
+    private Integer stock;
     private BigDecimal prezzo;
     
     @ManyToMany
@@ -38,13 +38,13 @@ public class Prodotto {
 
     public Prodotto(){}
 
-    public Prodotto(List<Categoria> categorie, List<FatturaProdotto> fattureProdotti, Long id, String nome, BigDecimal prezzo, int quantita) {
+    public Prodotto(List<Categoria> categorie, List<FatturaProdotto> fattureProdotti, Long id, String nome, BigDecimal prezzo, int stock) {
         this.categorie = categorie;
         this.fattureProdotti = fattureProdotti;
         this.id = id;
         this.nome = nome;
         this.prezzo = prezzo;
-        this.quantita = quantita;
+        this.stock = stock;
     }
 
     public Long getId() {
@@ -55,8 +55,8 @@ public class Prodotto {
         return nome;
     }
 
-    public Integer getQuantita() {
-        return quantita;
+    public Integer getStock() {
+        return stock;
     }
 
     public BigDecimal getPrezzo() {
@@ -75,7 +75,7 @@ public class Prodotto {
 
         private Long id;
         private String nome;
-        private Integer quantita;
+        private Integer stock;
         private BigDecimal prezzo;
         private List<Categoria> categorie;
         private List<FatturaProdotto> fattureProdotti;
@@ -93,8 +93,8 @@ public class Prodotto {
             return this;
         }
 
-        public Builder quantita(Integer quantita) {
-            this.quantita = quantita;
+        public Builder stock(Integer stock) {
+            this.stock = stock;
             return this;
         }
 
@@ -114,7 +114,7 @@ public class Prodotto {
         }
 
         public Prodotto build() {
-            Prodotto fatturaProdotto = new Prodotto(this.categorie, this.fattureProdotti, this.id, this.nome, this.prezzo, this.quantita);
+            Prodotto fatturaProdotto = new Prodotto(this.categorie, this.fattureProdotti, this.id, this.nome, this.prezzo, this.stock);
             return fatturaProdotto;
         }
     }

@@ -31,6 +31,22 @@ public class ProdottoDto {
     public BigDecimal getPrezzo() {
         return prezzo;
     }
+    
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public void setQuantita(Integer quantita) {
+        this.quantita = quantita;
+    }
+
+    public void setPrezzo(BigDecimal prezzo) {
+        this.prezzo = prezzo;
+    }
 
     public static class ProdottoBuilder {
 

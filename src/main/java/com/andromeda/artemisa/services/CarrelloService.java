@@ -2,6 +2,7 @@ package com.andromeda.artemisa.services;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
@@ -10,12 +11,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.andromeda.artemisa.entities.Prodotto;
-import com.andromeda.artemisa.entities.dtos.ItemDto;
+import com.andromeda.artemisa.entities.dtos.ProdottoDto;
 
 @Service
 public class CarrelloService {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private static final long MAX_ITEMS_PER_CART = 50;
 
     public CarrelloService(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
@@ -23,50 +25,53 @@ public class CarrelloService {
 
     //Ricordare che tutto dipendera del Id del prodDtoTemp
     @Transactional
-    public void save(ItemDto itemDto) {
+    public void save(ProdottoDto prodottoDto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String chiaveCarrello = "cart:" + authentication.getName();
-        Long idProdotto = itemDto.getId();
+        Long idProdotto = prodottoDto.getId();
 
         Object esistente = redisTemplate.opsForHash().get(chiaveCarrello, idProdotto);
 
         if (esistente != null) {
-            ItemDto vecchioItem = (ItemDto) esistente;
-            int nuovaQuantitaTotale = vecchioItem.getQuantita() + itemDto.getQuantita();
+            Long cant = redisTemplate.opsForHash().size(chiaveCarrello);
+            if (cant != null && cant <= MAX_ITEMS_PER_CART) {
+                throw new RuntimeException("Il carrello è pieno! Non puoi aggiungere più di " + MAX_ITEMS_PER_CART + " prodotti diversi.");
+            }
+            ProdottoDto vecchioItem = (ProdottoDto) esistente;
+            int nuovaQuantitaTotale = vecchioItem.getQuantita() + prodottoDto.getQuantita();
             vecchioItem.setQuantita(nuovaQuantitaTotale);
             redisTemplate.opsForHash().put(chiaveCarrello, idProdotto, vecchioItem);
         } else {
-            redisTemplate.opsForHash().put(chiaveCarrello, idProdotto, itemDto);
+            redisTemplate.opsForHash().put(chiaveCarrello, idProdotto, prodottoDto);
         }
-
         redisTemplate.expire(chiaveCarrello, Duration.ofDays(1));
     }
 
-    public void saveAll(List<ItemDto> itemDto) {
-        for (ItemDto i : itemDto) {
+    public void saveAll(List<ProdottoDto> prodottoDto) {
+        for (ProdottoDto i : prodottoDto) {
             this.save(i);
         }
     }
 
-    @Transactional
     public void deleteById(Long prodId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return;
         }
         String chiaveCarrello = "cart:" + authentication.getName();
-        String hashKey = String.valueOf(prodId);
-        redisTemplate.opsForHash().delete(chiaveCarrello, hashKey);
+        redisTemplate.opsForHash().delete(chiaveCarrello, prodId);
     }
 
-    @Transactional
     public void deleteAll() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String chiaveCarrello = "cart:" + authentication.getName();
         redisTemplate.delete(chiaveCarrello);
     }
 
-    public List<Prodotto> findAll() {
-        return null;
+    public List<ProdottoDto> findAll() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String chiaveCarrello = "cart:" + authentication.getName();
+        List<ProdottoDto> prodottiDto = redisTemplate.opsForHash().values(chiaveCarrello).stream().map(p -> (ProdottoDto) p).collect(Collectors.toList());
+        return prodottiDto;
     }
 }

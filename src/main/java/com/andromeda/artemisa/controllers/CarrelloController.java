@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.andromeda.artemisa.entities.dtos.ItemDto;
+import com.andromeda.artemisa.entities.dtos.ProdottoDto;
 import com.andromeda.artemisa.services.CarrelloService;
 
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -22,7 +22,7 @@ public class CarrelloController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<String> aggCarrello(@RequestBody ItemDto itemDto) {
+    public ResponseEntity<String> aggCarrello(@RequestBody ProdottoDto itemDto) {
         this.carrelloService.save(itemDto);
         return ResponseEntity.ok("Prodotto aggiunto!");
     }

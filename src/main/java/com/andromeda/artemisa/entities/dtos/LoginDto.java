@@ -6,7 +6,7 @@ public class LoginDto {
 
     private String email;
     private String password;
-    private List<ItemDto> carrelloLocale;
+    private List<ProdottoDto> carrelloLocale;
 
     public LoginDto(String email, String password) {
         this.email = email;
@@ -29,11 +29,11 @@ public class LoginDto {
         this.password = password;
     }
 
-    public List<ItemDto> getCarrelloLocale() {
+    public List<ProdottoDto> getCarrelloLocale() {
         return carrelloLocale;
     }
 
-    public void setCarrelloLocale(List<ItemDto> carrelloLocale) {
+    public void setCarrelloLocale(List<ProdottoDto> carrelloLocale) {
         this.carrelloLocale = carrelloLocale;
     }
 

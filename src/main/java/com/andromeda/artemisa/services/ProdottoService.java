@@ -101,7 +101,7 @@ public class ProdottoService {
             Prodotto prodotto = new Prodotto.Builder()
                     .nome(nome)
                     .prezzo(prezzo)
-                    .quantita(quantita)
+                    .stock(quantita)
                     .categorie(categorie)
                     .build();
 
@@ -149,5 +149,6 @@ public class ProdottoService {
         }
         return risposta;
     }
+
 
 }
