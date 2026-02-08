@@ -10,7 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.andromeda.artemisa.entities.dtos.ProdottoDto;
+import com.andromeda.artemisa.entities.dtos.CarrelloDto;
+import com.andromeda.artemisa.entities.dtos.ItemDto;
 import com.andromeda.artemisa.services.CarrelloService;
 
 
@@ -26,7 +27,7 @@ public class CarrelloController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<String> aggCarrello(@RequestBody ProdottoDto itemDto) {
+    public ResponseEntity<String> aggCarrello(@RequestBody ItemDto itemDto) {
         this.carrelloService.save(itemDto);
         return ResponseEntity.ok("Prodotto aggiunto!");
     }
@@ -42,8 +43,9 @@ public class CarrelloController {
         this.carrelloService.deleteAll();
         return ResponseEntity.ok("Prodotto aggiunto!");
     }
+
     @GetMapping("/list")
-    public ResponseEntity<List<ProdottoDto>> listCarrello(){
+    public ResponseEntity<CarrelloDto> listCarrello(){
         return ResponseEntity.ok(this.carrelloService.findAll());
     }
 }

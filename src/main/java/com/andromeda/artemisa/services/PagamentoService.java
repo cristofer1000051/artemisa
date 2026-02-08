@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.andromeda.artemisa.entities.Prodotto;
+import com.andromeda.artemisa.entities.dtos.ItemDto;
 import com.andromeda.artemisa.entities.dtos.PaymentInfoDTO;
 import com.andromeda.artemisa.entities.dtos.ProdottoDto;
 import com.andromeda.artemisa.repositories.ProdottoRepository;
@@ -61,45 +62,43 @@ public class PagamentoService {
     public List<String> verificareProdotti() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String chiaveCarrello = "cart:" + authentication.getName();
-        List<Object> itemObj = redisTemplate.opsForHash().values(chiaveCarrello);
+        List<ItemDto> itemRedis = redisTemplate.opsForHash().values(chiaveCarrello).stream().map(i -> (ItemDto) i).collect(Collectors.toList());
+        List<String> codProdList = new ArrayList<>();
 
-        List<ProdottoDto> itemDtoList = new ArrayList<>();
-        List<Long> ids = new ArrayList<>();
-        for (Object o : itemObj) {
-            itemDtoList.add((ProdottoDto) o);
-            ids.add((((ProdottoDto) o).getId()));
+        for (ItemDto i : itemRedis) {
+            codProdList.add(i.getCodProdotto());
         }
 
-        Map<Long, Prodotto> mappaProdotti = prodottoRepository.findByIdIn(ids)
+        Map<String, Prodotto> mappaProdotti = prodottoRepository.findBycodProdottoIn(codProdList)
                 .stream()
-                .collect(Collectors.toMap(p -> p.getId(), p -> p));
+                .collect(Collectors.toMap(p -> p.getCodProdotto(), p -> p));
 
         List<String> errori = new ArrayList<>();
-        List<ProdottoDto> prodottiValidi = new ArrayList<>();
-        for (ProdottoDto itemRedis : itemDtoList) {
-            Prodotto prodottoReale = mappaProdotti.get(itemRedis.getId());
+        List<ItemDto> prodottiValidi = new ArrayList<>();
+        for (ItemDto it : itemRedis) {
+            Prodotto prodottoReale = mappaProdotti.get(it.getCodProdotto());
             if (prodottoReale == null) {
-                errori.add("Il prodotto " + itemRedis.getNome() + " non esiste più.");
+                errori.add("Il prodotto " + it.getNome() + " non esiste più.");
                 continue;
             }
-            if (prodottoReale.getStock() <= 0 || prodottoReale.getStock() < itemRedis.getQuantita()) {
-                errori.add("Non c'è abbastanza stock per " + itemRedis.getNome());
+            if (prodottoReale.getStock() <= 0 || prodottoReale.getStock() < it.getQuantita()) {
+                errori.add("Non c'è abbastanza stock per " + it.getNome());
                 continue;
             }
-            if (prodottoReale.getPrezzo().compareTo(itemRedis.getPrezzo()) != 0) {
-                itemRedis.setPrezzo(prodottoReale.getPrezzo());
-                errori.add("Il prezzo di " + itemRedis.getNome() + " è cambiato.");
+            if (prodottoReale.getPrezzo().compareTo(it.getPrezzo()) != 0) {
+                it.setPrezzo(prodottoReale.getPrezzo());
+                errori.add("Il prezzo di " + it.getNome() + " è cambiato.");
             }
 
-            prodottiValidi.add(itemRedis);
+            prodottiValidi.add(it);
         }
 
         if (!errori.isEmpty()) {
             this.carrelloService.deleteAll(); // Svuota il vecchio carrello sporco
 
             // Salva solo quelli validi
-            for (ProdottoDto pdto : prodottiValidi) {
-                this.carrelloService.save(pdto);
+            for (ItemDto idto : prodottiValidi) {
+                this.carrelloService.save(idto);
             }
         }
 

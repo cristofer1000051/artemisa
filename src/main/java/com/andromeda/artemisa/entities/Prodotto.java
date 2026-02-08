@@ -2,8 +2,10 @@ package com.andromeda.artemisa.entities;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,10 +23,12 @@ public class Prodotto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(unique = true, nullable = false)
+    private String codProdotto;
     private String nome;
     private Integer stock;
     private BigDecimal prezzo;
-    
+
     @ManyToMany
     @JoinTable(
             name = "prodotti_categorie",
@@ -36,15 +40,17 @@ public class Prodotto {
     @OneToMany(mappedBy = "prodotto", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FatturaProdotto> fattureProdotti;
 
-    public Prodotto(){}
+    public Prodotto() {
+    }
 
-    public Prodotto(List<Categoria> categorie, List<FatturaProdotto> fattureProdotti, Long id, String nome, BigDecimal prezzo, int stock) {
+    public Prodotto(List<Categoria> categorie, List<FatturaProdotto> fattureProdotti, Long id, String nome, BigDecimal prezzo, int stock, String codProdotto) {
         this.categorie = categorie;
         this.fattureProdotti = fattureProdotti;
         this.id = id;
         this.nome = nome;
         this.prezzo = prezzo;
         this.stock = stock;
+        this.codProdotto = codProdotto;
     }
 
     public Long getId() {
@@ -79,6 +85,7 @@ public class Prodotto {
         private BigDecimal prezzo;
         private List<Categoria> categorie;
         private List<FatturaProdotto> fattureProdotti;
+        private String codProdotto;
 
         public Builder() {
         }
@@ -114,9 +121,14 @@ public class Prodotto {
         }
 
         public Prodotto build() {
-            Prodotto fatturaProdotto = new Prodotto(this.categorie, this.fattureProdotti, this.id, this.nome, this.prezzo, this.stock);
+            this.codProdotto = UUID.randomUUID().toString();
+            Prodotto fatturaProdotto = new Prodotto(this.categorie, this.fattureProdotti, this.id, this.nome, this.prezzo, this.stock, this.codProdotto);
             return fatturaProdotto;
         }
+    }
+
+    public String getCodProdotto() {
+        return codProdotto;
     }
 
 }

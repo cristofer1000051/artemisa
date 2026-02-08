@@ -50,12 +50,12 @@ public class ProdottoController {
 
         Page<Prodotto> pageProdotto = prodottoService.reperireProdottiPageable(nome, categoria, prezzoMin, prezzoMax, pageable);
         Page<ProdottoDto> pageProdottoDto = pageProdotto.map(
-                prodotto -> new ProdottoDto(
-                        prodotto.getId(),
-                        prodotto.getNome(),
-                        prodotto.getPrezzo(),
-                        prodotto.getStock()
-                )
+                p -> new ProdottoDto.Builder()
+                    .codProdotto(p.getCodProdotto())
+                    .nome(p.getNome())
+                    .stock(p.getStock())
+                    .prezzo(p.getPrezzo())
+                    .build()
         );
         return assembler.toModel(pageProdottoDto);
     }
