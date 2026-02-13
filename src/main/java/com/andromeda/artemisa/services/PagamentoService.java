@@ -2,26 +2,24 @@ package com.andromeda.artemisa.services;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.andromeda.artemisa.entities.Prodotto;
 import com.andromeda.artemisa.entities.dtos.ItemInt.ItemDto;
-import com.andromeda.artemisa.entities.dtos.PaymentInfoDTO;
-import com.andromeda.artemisa.entities.dtos.ProdottoDto;
 import com.andromeda.artemisa.repositories.ProdottoRepository;
 import com.andromeda.artemisa.utils.CarrelloValidationException;
+import com.andromeda.artemisa.utils.Function;
 import com.andromeda.artemisa.utils.PaymentResponse;
 import com.stripe.Stripe;
+import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;
 
@@ -41,24 +39,31 @@ public class PagamentoService {
         this.carrelloService = carrelloService;
     }
 
-    public PaymentResponse createPaymentIntent(PaymentInfoDTO paymentInfo) {
+    public PaymentResponse createPaymentIntent(List<ItemDto> prodottiVerificati) throws StripeException {
+        //1.- CALCOLO SICURO DEL TOTALE
+        BigDecimal totale = BigDecimal.ZERO;
+        for (ItemDto item : prodottiVerificati) {
+            totale = totale.add(item.getPrezzoQta());
+        }
+        //2. CONVERSIONE IN CENTESIMI (Es. 10.50 -> 1050 centesimi)
+        //Stripe accetta solo Long (interi)
+        Long amountInCents = totale.multiply(new BigDecimal(100)).longValue();
         Stripe.apiKey = stripeApiKey;
-        long amountInCents = paymentInfo.getAmount() * 100;
+
         PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
                 .setAmount(amountInCents)
                 .setCurrency("eur")
+                .setReceiptEmail(Function.authentication().getUsername())
                 .setAutomaticPaymentMethods(
                         PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
                                 .setEnabled(true)
                                 .build()
                 )
+                .putMetadata("email", Function.authentication().getUsername())
                 .build();
-        try {
-            PaymentIntent paymentIntent = PaymentIntent.create(params);
-            return new PaymentResponse(paymentIntent.getClientSecret());
-        } catch (Exception e) {
-            throw new RuntimeException("Errore durante la creazione del pagamento", e);
-        }
+        PaymentIntent paymentIntent = PaymentIntent.create(params);
+        return new PaymentResponse(paymentIntent.getClientSecret());
+
     }
 
     public List<ItemDto> verificareProdotti() {
@@ -108,9 +113,36 @@ public class PagamentoService {
 
             prodottiValidi.add(itemAggiornato);
         }
-        if(!errori.isEmpty()){
+        if (!errori.isEmpty()) {
             throw new CarrelloValidationException(errori);
         }
         return prodottiValidi;
+    }
+
+    public boolean verificaEConcludi(String paymentIntentId) throws Exception {
+        //1. CHIEDI A STRIPE(SERVER TO SERVER)
+        PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentIntentId);
+
+        //2. CONTROLLA LO STATO
+        // Gli stati buoni sono: "succeeded" (pagato) o "processing" (in corso, ma sicuro)
+        String stato = paymentIntent.getStatus();
+        if ("succeeded".equals(stato)) {
+
+            // --- QUI FAI LE TUE OPERAZIONI ---
+            // A. Recupera l'utente dai metadata (se li avevi messi) o dal Context
+            String username = paymentIntent.getMetadata().get("email");
+            System.out.println("L'utente è: " + username);
+            // Oppure usa SecurityContextHolder se l'utente è loggato
+
+            System.out.println("Soldi incassati! Importo: " + paymentIntent.getAmount());
+            // B. Svuota il carrello Redis
+            carrelloService.deleteAll();
+            // C. Salva l'ordine nel DB
+            // ordineRepository.save(...);
+            return true; // Tutto OK
+        }
+        // Se lo stato è "requires_payment_method" o "canceled", il pagamento è fallito
+        System.out.println("Pagamento NON valido. Stato: " + stato);
+        return false;
     }
 }

@@ -9,8 +9,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,7 +17,6 @@ import com.andromeda.artemisa.entities.dtos.ItemInt.ItemCarDto;
 import com.andromeda.artemisa.entities.dtos.ItemInt.ItemDto;
 import com.andromeda.artemisa.entities.dtos.ProdottoDto;
 import com.andromeda.artemisa.repositories.ProdottoRepository;
-import com.andromeda.artemisa.security.entities.CustomUserDetails;
 import com.andromeda.artemisa.utils.Function;
 
 @Service
@@ -28,6 +25,7 @@ public class CarrelloService {
     private final RedisTemplate<String, Object> redisTemplate;
     private static final long MAX_ITEMS_PER_CART = 50;
     private final ProdottoRepository prodottoRepository;
+
     public CarrelloService(RedisTemplate<String, Object> redisTemplate, ProdottoRepository prodottoRepository) {
         this.redisTemplate = redisTemplate;
         this.prodottoRepository = prodottoRepository;
@@ -94,8 +92,9 @@ public class CarrelloService {
 
     public void saveAll(List<ItemCarDto> itemCarDtoList) {
         /**
-         * Itereremmo la lista @itemCarDtoList, per eliminare oggetti con il codice prodotto ripetuto
-         * Inoltre verrano sommati le quantita e salvati in una mappa
+         * Itereremmo la lista @itemCarDtoList, per eliminare oggetti con il
+         * codice prodotto ripetuto Inoltre verrano sommati le quantita e
+         * salvati in una mappa
          */
         Map<String, Integer> itemCarDtoUnique = new HashMap<>();
         for (ItemCarDto itemCarDto : itemCarDtoList) {
@@ -124,7 +123,8 @@ public class CarrelloService {
                 p -> p
         ));
         /**
-         * #itemMap: conterrà gli itemDto che verrano salvati all'interno di Redis
+         * #itemMap: conterrà gli itemDto che verrano salvati all'interno di
+         * Redis
          */
         Map<String, ItemDto> itemMap = new HashMap<>();
         int nuoviProdottiCounter = 0;
@@ -170,15 +170,39 @@ public class CarrelloService {
     }
 
     public void deleteById(String codProd) {
-        
+
         String chiaveCarrello = "cart:" + Function.authentication().getUsername();
-         System.out.println(chiaveCarrello);
+        System.out.println(chiaveCarrello);
         redisTemplate.opsForHash().delete(chiaveCarrello, codProd);
     }
 
     public void deleteAll() {
         String chiaveCarrello = "cart:" + Function.authentication().getUsername();
         redisTemplate.delete(chiaveCarrello);
+    }
+
+    public void modify(List<ItemCarDto> itemCarDtoList) {
+        String chiaveCarrello = "cart:" + Function.authentication().getUsername();
+        Map<String, ItemDto> carrello = redisTemplate.opsForHash().entries(chiaveCarrello).entrySet().stream().collect(Collectors.toMap(
+                e -> (String) e.getKey(),
+                e -> (ItemDto) e.getValue()
+        ));
+        Map<String, ItemDto> nuovoCarrello = new HashMap<>();
+        for (ItemCarDto itemDto : itemCarDtoList) {
+            if (carrello.containsKey(itemDto.getCodProdotto())) {
+                ItemDto vecchioItem = carrello.get(itemDto.getCodProdotto());
+                BigDecimal prezzoTotal = vecchioItem.getPrezzo().multiply(BigDecimal.valueOf(itemDto.getQuantita()));
+                ItemDto item = new ItemDto.Builder()
+                        .codProdotto(vecchioItem.getCodProdotto())
+                        .nome(vecchioItem.getNome())
+                        .quantita(itemDto.getQuantita())
+                        .prezzoQta(prezzoTotal)
+                        .prezzo(vecchioItem.getPrezzo())
+                        .build();
+                nuovoCarrello.put(vecchioItem.getCodProdotto(), item);
+            }
+        }
+        redisTemplate.opsForHash().putAll(chiaveCarrello, nuovoCarrello);
     }
 
     public CarrelloDto findAll() {

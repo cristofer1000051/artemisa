@@ -49,4 +49,10 @@ public class CarrelloController {
     public ResponseEntity<CarrelloDto> listCarrello(){
         return ResponseEntity.ok(this.carrelloService.findAll());
     }
+
+    @PostMapping("/update")
+    public ResponseEntity<String> mdCarrello(@RequestBody List<ItemCarDto> itemCarDtoList){
+        this.carrelloService.modify(itemCarDtoList);
+        return ResponseEntity.ok("Il carrello è stato modificato");
+    }
 }
