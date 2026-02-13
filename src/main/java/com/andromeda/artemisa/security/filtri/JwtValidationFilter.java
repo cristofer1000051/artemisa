@@ -13,6 +13,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -36,10 +38,11 @@ public class JwtValidationFilter extends OncePerRequestFilter {
     private JwtService jwtService;
     private RedisService redisService;
     private static final long SESSION_TIMEOUT = 30;
-    
-    public JwtValidationFilter(JwtService jwtService,RedisService redisService) {
+    private UserDetailsService userDetailsService;
+    public JwtValidationFilter(JwtService jwtService,RedisService redisService,UserDetailsService userDetailsService) {
         this.jwtService = jwtService;
         this.redisService = redisService;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -55,7 +58,6 @@ public class JwtValidationFilter extends OncePerRequestFilter {
         try {
             Claims claims = jwtService.extractClaims(token);
 
-            Long utenteId = claims.get("utenteId", Long.class);
             String email = claims.getSubject();
             String authorities = claims.get("authorities", String.class);
             List<String> listAuthorities = new ArrayList<>(Arrays.asList(authorities.split(",")));
@@ -63,7 +65,8 @@ public class JwtValidationFilter extends OncePerRequestFilter {
                     .stream()
                     .map(sa -> new SimpleGrantedAuthority(sa))
                     .collect(Collectors.toList());
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(utenteId, null, grantedAuthorities);
+            UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, grantedAuthorities);
             authenticationToken.setDetails(email);
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 

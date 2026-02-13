@@ -9,9 +9,13 @@ public interface ItemInt {
         private String codProdotto;
         private Integer quantita;
 
+        
         public ItemCarDto(String codProdotto, Integer quantita) {
             this.codProdotto = codProdotto;
             this.quantita = quantita;
+        }
+
+        public ItemCarDto() {
         }
 
         public String getCodProdotto() {

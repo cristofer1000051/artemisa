@@ -49,7 +49,7 @@ public class AuthService {
                 = new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword());
         Authentication auth = authenticationManager.authenticate(authToken);
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-
+        
         String jwtToken = jwtService.generateToken(userDetails.getUsername(), userDetails.getAuthorities(), userDetails.getId());
 
         redisService.save(jwtToken, userDetails.getUsername(), 30);

@@ -17,6 +17,6 @@ public interface ProdottoRepository extends JpaRepository<Prodotto, Long>, JpaSp
 
     List<Prodotto> findBycodProdottoIn(@Param("codProdottList") List<String> codProdottoList);
 
-    @Query("SELECT p from Prodotto p WHERE p.codProdotto =: codProdotto")
+    @Query("SELECT p from Prodotto p WHERE p.codProdotto = :codProdotto")
     Optional<Prodotto> findByCodProdotto(@Param("codProdotto") String codProdotto);
 }

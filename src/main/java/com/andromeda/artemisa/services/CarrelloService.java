@@ -19,6 +19,8 @@ import com.andromeda.artemisa.entities.dtos.ItemInt.ItemCarDto;
 import com.andromeda.artemisa.entities.dtos.ItemInt.ItemDto;
 import com.andromeda.artemisa.entities.dtos.ProdottoDto;
 import com.andromeda.artemisa.repositories.ProdottoRepository;
+import com.andromeda.artemisa.security.entities.CustomUserDetails;
+import com.andromeda.artemisa.utils.Function;
 
 @Service
 public class CarrelloService {
@@ -26,7 +28,6 @@ public class CarrelloService {
     private final RedisTemplate<String, Object> redisTemplate;
     private static final long MAX_ITEMS_PER_CART = 50;
     private final ProdottoRepository prodottoRepository;
-
     public CarrelloService(RedisTemplate<String, Object> redisTemplate, ProdottoRepository prodottoRepository) {
         this.redisTemplate = redisTemplate;
         this.prodottoRepository = prodottoRepository;
@@ -47,8 +48,7 @@ public class CarrelloService {
      */
     @Transactional
     public void save(ItemCarDto itemCar) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String chiaveCarrello = "cart:" + authentication.getName();
+        String chiaveCarrello = "cart:" + Function.authentication().getUsername();
         String codProd = itemCar.getCodProdotto();
         Long prodottiTotali = redisTemplate.opsForHash().size(chiaveCarrello);
         ItemDto itemNelCarrello = (ItemDto) redisTemplate.opsForHash().get(chiaveCarrello, codProd);
@@ -102,8 +102,7 @@ public class CarrelloService {
             itemCarDtoUnique.merge(itemCarDto.getCodProdotto(), itemCarDto.getQuantita(), Integer::sum);
         }
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String chiaveCarrello = "cart:" + authentication.getName();
+        String chiaveCarrello = "cart:" + Function.authentication().getUsername();
         List<String> codProds = new ArrayList<>(itemCarDtoUnique.keySet());
 
         //recuperiamo i dati da Redis come una mappa 
@@ -171,23 +170,19 @@ public class CarrelloService {
     }
 
     public void deleteById(String codProd) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return;
-        }
-        String chiaveCarrello = "cart:" + authentication.getName();
+        
+        String chiaveCarrello = "cart:" + Function.authentication().getUsername();
+         System.out.println(chiaveCarrello);
         redisTemplate.opsForHash().delete(chiaveCarrello, codProd);
     }
 
     public void deleteAll() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String chiaveCarrello = "cart:" + authentication.getName();
+        String chiaveCarrello = "cart:" + Function.authentication().getUsername();
         redisTemplate.delete(chiaveCarrello);
     }
 
     public CarrelloDto findAll() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String chiaveCarrello = "cart:" + authentication.getName();
+        String chiaveCarrello = "cart:" + Function.authentication().getUsername();
         List<ItemDto> itemDtoList = redisTemplate.opsForHash().values(chiaveCarrello).stream().map(p -> (ItemDto) p).toList();
         BigDecimal prezzoTotal = BigDecimal.ZERO;
         for (ItemDto i : itemDtoList) {
