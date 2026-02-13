@@ -1,5 +1,6 @@
 package com.andromeda.artemisa.services;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -14,10 +15,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.andromeda.artemisa.entities.Prodotto;
-import com.andromeda.artemisa.entities.dtos.ItemDto;
+import com.andromeda.artemisa.entities.dtos.ItemInt.ItemDto;
 import com.andromeda.artemisa.entities.dtos.PaymentInfoDTO;
 import com.andromeda.artemisa.entities.dtos.ProdottoDto;
 import com.andromeda.artemisa.repositories.ProdottoRepository;
+import com.andromeda.artemisa.utils.CarrelloValidationException;
 import com.andromeda.artemisa.utils.PaymentResponse;
 import com.stripe.Stripe;
 import com.stripe.model.PaymentIntent;
@@ -59,49 +61,56 @@ public class PagamentoService {
         }
     }
 
-    public List<String> verificareProdotti() {
+    public List<ItemDto> verificareProdotti() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String chiaveCarrello = "cart:" + authentication.getName();
-        List<ItemDto> itemRedis = redisTemplate.opsForHash().values(chiaveCarrello).stream().map(i -> (ItemDto) i).collect(Collectors.toList());
-        List<String> codProdList = new ArrayList<>();
 
-        for (ItemDto i : itemRedis) {
-            codProdList.add(i.getCodProdotto());
-        }
+        //Abbiamo recuperato i dati dal carrello e gli abbiamo trasformato in una mappa per poter confrontare i dati tra Redis e il database
+        Map<String, ItemDto> itemRedisMap = redisTemplate.opsForHash().entries(chiaveCarrello).entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                        e -> (String) e.getKey(),
+                        e -> (ItemDto) e.getValue()
+                ));
 
-        Map<String, Prodotto> mappaProdotti = prodottoRepository.findBycodProdottoIn(codProdList)
+        Map<String, Prodotto> prodottiDb = prodottoRepository.findBycodProdottoIn(new ArrayList<>(itemRedisMap.keySet()))
                 .stream()
                 .collect(Collectors.toMap(p -> p.getCodProdotto(), p -> p));
 
-        List<String> errori = new ArrayList<>();
         List<ItemDto> prodottiValidi = new ArrayList<>();
-        for (ItemDto it : itemRedis) {
-            Prodotto prodottoReale = mappaProdotti.get(it.getCodProdotto());
-            if (prodottoReale == null) {
-                errori.add("Il prodotto " + it.getNome() + " non esiste più.");
-                continue;
-            }
-            if (prodottoReale.getStock() <= 0 || prodottoReale.getStock() < it.getQuantita()) {
-                errori.add("Non c'è abbastanza stock per " + it.getNome());
-                continue;
-            }
-            if (prodottoReale.getPrezzo().compareTo(it.getPrezzo()) != 0) {
-                it.setPrezzo(prodottoReale.getPrezzo());
-                errori.add("Il prezzo di " + it.getNome() + " è cambiato.");
-            }
+        List<String> errori = new ArrayList<>();
+        for (Map.Entry<String, ItemDto> entry : itemRedisMap.entrySet()) {
+            String codProdotto = entry.getKey();
+            ItemDto itemDtoRedis = entry.getValue();
 
-            prodottiValidi.add(it);
+            if (!prodottiDb.containsKey(codProdotto)) {
+                this.carrelloService.deleteById(codProdotto);
+                errori.add("Il prodotto " + itemDtoRedis.getNome() + " nel carrello non esiste più!");
+            }
+            Prodotto prodottoDb = prodottiDb.get(codProdotto);
+            BigDecimal pzProdtRedis = itemDtoRedis.getPrezzo();
+            BigDecimal pzProdtDb = prodottoDb.getPrezzo();
+            int quantita = itemDtoRedis.getQuantita();
+
+            if (quantita > prodottoDb.getStock()) {
+                errori.add("Il prodotto " + itemDtoRedis.getNome() + " nel carrello ha superato lo stock disponibile!");
+            }
+            if (pzProdtDb.compareTo(pzProdtRedis) != 0) {
+                errori.add("Il prodotto " + itemDtoRedis.getNome() + " è stato variato il suo prezzo, il suo prezzo attuale è " + pzProdtDb + " invece di " + pzProdtRedis + "!");
+            }
+            ItemDto itemAggiornato = new ItemDto.Builder()
+                    .codProdotto(prodottoDb.getCodProdotto())
+                    .nome(prodottoDb.getNome())
+                    .prezzo(pzProdtDb)
+                    .quantita(itemDtoRedis.getQuantita())
+                    .prezzoQta(pzProdtDb.multiply(BigDecimal.valueOf(quantita)))
+                    .build();
+
+            prodottiValidi.add(itemAggiornato);
         }
-
-        if (!errori.isEmpty()) {
-            this.carrelloService.deleteAll(); // Svuota il vecchio carrello sporco
-
-            // Salva solo quelli validi
-            for (ItemDto idto : prodottiValidi) {
-                this.carrelloService.save(idto);
-            }
+        if(!errori.isEmpty()){
+            throw new CarrelloValidationException(errori);
         }
-
-        return errori;
+        return prodottiValidi;
     }
 }

@@ -3,6 +3,8 @@ package com.andromeda.artemisa.entities.dtos;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.andromeda.artemisa.entities.dtos.ItemInt.ItemDto;
+
 public class CarrelloDto {
 
     List<ItemDto> itemListDto;

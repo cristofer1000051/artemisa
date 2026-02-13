@@ -2,11 +2,13 @@ package com.andromeda.artemisa.entities.dtos;
 
 import java.util.List;
 
+import com.andromeda.artemisa.entities.dtos.ItemInt.ItemCarDto;
+
 public class LoginDto {
 
     private String email;
     private String password;
-    private List<ItemDto> carrelloLocale;
+    private List<ItemCarDto> carrelloLocale;
 
     public LoginDto(String email, String password) {
         this.email = email;
@@ -29,11 +31,11 @@ public class LoginDto {
         this.password = password;
     }
 
-    public List<ItemDto> getCarrelloLocale() {
+    public List<ItemCarDto> getCarrelloLocale() {
         return carrelloLocale;
     }
 
-    public void setCarrelloLocale(List<ItemDto> carrelloLocale) {
+    public void setCarrelloLocale(List<ItemCarDto> carrelloLocale) {
         this.carrelloLocale = carrelloLocale;
     }
 
